@@ -1,16 +1,35 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
-        <title>Preview 1.0</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <title>Photoshop Preview</title>
         <style type="text/css">
         	body {
         		margin: 0px;
         		padding: 0px;
         	}
+
+            .container {
+            }
+
+            .preview-image {
+                display: block;
+            }
         </style>
     </head>
     <body>
-        <img src="/image" alt="" width="100%" />
+        <div class="container">
+            <img id="preview-image" class="preview-image" src="/image" alt="" width="<%= config.screenWidth; %>" />
+        </div>
     </body>
+    <% if (config.watch) { %>
+        <script>
+            const previewImage = document.getElementById("preview-image");
+
+            window.setInterval(function () {
+                previewImage.src='/image?q=' + Math.round(Math.random() * 10000000)
+            }, 1000);
+        </script>
+    <% } %>
 </html> 

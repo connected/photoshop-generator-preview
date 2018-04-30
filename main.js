@@ -4,7 +4,17 @@ var express = require('express');
 var app = express();
 var config = require('./config.json');
 
+var busy = false;
+
 exports.init = function (generator) {
+  function isBusy () {
+    return busy;
+  }
+
+  function setBusy (busy) {
+    busy = busy;
+  }
+
   function getPreviewImagePath () {
     return path.join(config.imageDir, [
       config.imageName, 
@@ -17,7 +27,7 @@ exports.init = function (generator) {
       .then(result => {
         // Try to find active artboard by checking selected layers
         for (var artboard of result.layers) {
-          if (artboard.layers) {
+          if (artboard.artboard && artboard.layers) {
             return artboard;
           }
         }
@@ -27,15 +37,19 @@ exports.init = function (generator) {
           return _.find(result.layers, { id: result.selection[0] });
         }
 
-        return result.layers[0];
+        if (result.layers[0].artboard) {
+          return result.layers[0];
+        }
       });
   }
 
   function generatePreview () {
+    setBusy(true);
+
     return Promise.all([generator.getDocumentInfo(), getActiveArtboard()])
-      // Normalize error format
       .catch(message => {
-        throw new Error('No open document found.')
+        setBusy(false);
+        throw new Error('No open document found.');
       })
       .then(values => {
         // @todo Destructure arguments when this feature is available
@@ -54,29 +68,50 @@ exports.init = function (generator) {
           format: config.imageFormat,
           quality: config.imageQuality
         });
+      })
+      .then(imagePath => {
+        setBusy(false);
+        return imagePath;
       });
   }
 
-  // @todo Generate preview when document changes
-  // generator.onPhotoshopEvent('documentChanged', () => {
-  // })
+  if (config.watch) {
+    generator.onPhotoshopEvent('documentChanged', () => {
+      if (!isBusy()) {
+        generatePreview();
+      }
+    });
+
+    generator.onPhotoshopEvent('currentDocumentChanged', () => {
+      if (!isBusy()) {
+        generatePreview();  
+      }
+    });
+  }
+
+  function nocache (request, response, next) {
+    response.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    response.header('Expires', '-1');
+    response.header('Pragma', 'no-cache');
+    next();
+  }
 
   app.get('/', (request, response) => {
     generatePreview()
       .then(() => {
-        response.render('index');
+        response.render('index', { config });
       })
       .catch(e => {
         response.status(500).send('Something went wrong: ' + e.message);
       });
   });
 
-  app.get('/image', (request, response) => {
-    response.sendFile(getPreviewImagePath());
+  app.get('/image', nocache, (request, response) => {
+    response.sendFile(getPreviewImagePath());  
   });
 
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'ejs');
 
-  app.listen(8080);
+  app.listen(config.serverPort);
 }
