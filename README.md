@@ -5,16 +5,16 @@ This plug-in allows you to preview your currently opened Photoshop document in a
 Tested with Photoshop CC 2018.
 
 ### Features
-* Artboard support
+* Artboards support
 * Realtime preview updates
 
 ### Setup
 0. Close any running Photoshop app
-1. Download bundled plug-in version here (@todo add link)
+1. Download bundled plug-in version [here](https://drive.google.com/open?id=1LopQ9yY3H8aHWvFJSA8-yZFhnzOvhFNG)
 2. Extract archive content to your Desktop
-3. Go to extracted "preview" folder and open "config.json" file with any text editor
-4. Change "imageDir" path param to where you want to save preview file (make sure target folder is writable!)
-5. Save changes and move "preview" folder to your Photoshop installation directory /Plug-ins/Generator
+3. Go to extracted `preview` folder and open `config.json` file with any text editor
+4. Change `imageDir` path param to where you want to save preview file (make sure target folder is writable!)
+5. Save changes and move extracted `preview` folder to your Photoshop Generator plug-in directory e.g. `C:\Program Files\Adobe\Adobe Photoshop CC 2018\Plug-ins\Generator`
 6. Start Photoshop and open any document
 7. Open http://localhost:8080 in your browser
 
