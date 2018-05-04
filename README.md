@@ -10,7 +10,7 @@ Tested with Photoshop CC 2017/2018.
 
 ### Setup
 0. Close any running Photoshop app
-1. Download bundled plug-in version [here](https://drive.google.com/open?id=1LopQ9yY3H8aHWvFJSA8-yZFhnzOvhFNG)
+1. Download bundled plug-in version [here](https://github.com/connected/photoshop-generator-preview/releases/download/1.0/preview.zip)
 2. Extract archive content to your Desktop
 3. Go to extracted `preview` folder and open `config.json` file with any text editor
 4. Change `imageDir` path param to where you want to save preview file (make sure target folder is writable!)
