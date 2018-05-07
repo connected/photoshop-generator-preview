@@ -1,9 +1,6 @@
 {
-	"imageDir": "C:/Users/Andrew/Desktop",
-	"imageName": "preview",
 	"imageFormat": "jpg",
 	"imageQuality": 100,
-	"imageResolution": 72,
 	"screenWidth": 375,
 	"serverPort": 8080,
 	"watch": false
