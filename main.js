@@ -3,25 +3,9 @@ var path = require('path');
 var express = require('express');
 var app = express();
 var config = require('./config.json');
-
-var busy = false;
+var nocache = require('nocache');
 
 exports.init = function (generator) {
-  function isBusy () {
-    return busy;
-  }
-
-  function setBusy (busy) {
-    busy = busy;
-  }
-
-  function getPreviewImagePath () {
-    return path.join(config.imageDir, [
-      config.imageName, 
-      config.imageFormat
-    ].join('.'));
-  }
-
   function getActiveArtboard () {
     return generator.getDocumentInfo(null, { selectedLayers: true })
       .then(result => {
@@ -43,12 +27,9 @@ exports.init = function (generator) {
       });
   }
 
-  function generatePreview () {
-    setBusy(true);
-
+  function generatePreview (outputStream) {
     return Promise.all([generator.getDocumentInfo(), getActiveArtboard()])
       .catch(message => {
-        setBusy(false);
         throw new Error('No open document found.');
       })
       .then(values => {
@@ -63,51 +44,36 @@ exports.init = function (generator) {
         return generator.getPixmap(document.id, artboard.id, {});
       })
       .then(pixmap => {
-        return generator.savePixmap(pixmap, getPreviewImagePath(), {
-          ppi: config.imageResolution,
+        return generator.streamPixmap(pixmap, outputStream, {
+          ppi: 144,
           format: config.imageFormat,
           quality: config.imageQuality
         });
-      })
-      .then(imagePath => {
-        setBusy(false);
-        return imagePath;
       });
   }
 
   if (config.watch) {
     generator.onPhotoshopEvent('documentChanged', () => {
-      if (!isBusy()) {
-        generatePreview();
-      }
+      generatePreview();
     });
 
     generator.onPhotoshopEvent('currentDocumentChanged', () => {
-      if (!isBusy()) {
-        generatePreview();  
-      }
+      generatePreview();  
     });
   }
 
-  function nocache (request, response, next) {
-    response.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-    response.header('Expires', '-1');
-    response.header('Pragma', 'no-cache');
-    next();
-  }
-
   app.get('/', (request, response) => {
-    generatePreview()
-      .then(() => {
-        response.render('index', { config });
-      })
-      .catch(e => {
-        response.status(500).send('Something went wrong: ' + e.message);
-      });
+    response.render('index', { config });
   });
 
-  app.get('/image', nocache, (request, response) => {
-    response.sendFile(getPreviewImagePath());  
+  app.get('/image', nocache(), (request, response) => {
+    generatePreview(response)
+      .then(() => {
+        response.end();
+      })
+      .catch(e => {
+        response.status(500).send('Something went wrong: ' + e.message)
+      })
   });
 
   app.set('views', path.join(__dirname, 'views'));
