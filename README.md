@@ -26,8 +26,8 @@ Pull requests are appreciated :)
 
 ### TODO
 * Reduce preview update latency (websockets, SSE?)
-* Store generated preview image in memory
 * Refactor code for better readability and maintainability
+* ~~Store generated preview image in memory~~
 
 ### Feedback
 In case of any questions, feel free to open issues.
